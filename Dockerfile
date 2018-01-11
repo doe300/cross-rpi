@@ -9,6 +9,7 @@ RUN apt-get update \
       gcc g++ automake libtool build-essential pkg-config \
       make python opencl-c-headers \
       apt-utils ca-certificates devscripts \
+      clang-3.9 llvm-3.9-dev \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 RUN wget -O /tmp/master.tar.gz http://github.com/raspberrypi/tools/archive/master.tar.gz \
