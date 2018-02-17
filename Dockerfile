@@ -39,7 +39,8 @@ RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
 RUN wget -O /tmp/libllvm-3.9.deb http://archive.raspberrypi.org/debian/pool/main/l/llvm-toolchain-3.9/libllvm3.9_3.9-4_armhf.deb \
  && wget -O /tmp/libllvm-3.9-dev.deb http://archive.raspberrypi.org/debian/pool/main/l/llvm-toolchain-3.9/llvm-3.9-dev_3.9-4_armhf.deb \
  && dpkg-deb -x	/tmp/libllvm-3.9.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x	/tmp/libllvm-3.9-dev.deb ${SYSROOT_CROSS}/
+ && dpkg-deb -x	/tmp/libllvm-3.9-dev.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libllvm-3.9.deb /tmp/libllvm-3.9-dev.deb
 
 # SPIV-LLVM
 ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
