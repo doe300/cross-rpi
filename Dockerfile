@@ -42,6 +42,15 @@ RUN wget -O /tmp/libllvm-3.9.deb http://archive.raspberrypi.org/debian/pool/main
  && dpkg-deb -x	/tmp/libllvm-3.9-dev.deb ${SYSROOT_CROSS}/ \
  && rm /tmp/libllvm-3.9.deb /tmp/libllvm-3.9-dev.deb
 
+# Additional system libraryries required for linking LLVM
+RUN wget -O /tmp/libtinfo5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libtinfo5_5.9+20140913-1+deb8u2_armhf.deb \
+ && wget -O /tmp/libncurses5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses5_5.9+20140913-1+deb8u2_armhf.deb \
+ && wget -O /tmp/libzlib1g.deb http://mirrordirector.raspbian.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-2_armhf.deb \
+ && dpkg-deb -x /tmp/libtinfo5.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libncurses5.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libzlib1g.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb
+
 # SPIV-LLVM
 ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
 ENV SPIRV_GIT_URL http://github.com/KhronosGroup/SPIRV-LLVM.git
