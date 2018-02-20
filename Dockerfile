@@ -21,7 +21,7 @@ RUN wget -O /tmp/master.tar.gz http://github.com/raspberrypi/tools/archive/maste
 ENV SYSROOT_CROSS /opt/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/arm-linux-gnueabihf/
 
 ENV RPI_TARGET armv6-rpi-linux-gnueabihf
-ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware
+ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/rhaspberrypi-firmware
 ENV RPI_FIRMWARE_VERSION 20170811-1
 
 # rpi firmware
@@ -46,10 +46,12 @@ RUN wget -O /tmp/libllvm-3.9.deb http://archive.raspberrypi.org/debian/pool/main
 RUN wget -O /tmp/libtinfo5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libtinfo5_5.9+20140913-1+deb8u2_armhf.deb \
  && wget -O /tmp/libncurses5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses5_5.9+20140913-1+deb8u2_armhf.deb \
  && wget -O /tmp/libzlib1g.deb http://mirrordirector.raspbian.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-2_armhf.deb \
+ && wget -O /tmp/libffi6.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi6_3.2.1-8_armhf.deb \
  && dpkg-deb -x /tmp/libtinfo5.deb ${SYSROOT_CROSS}/ \
  && dpkg-deb -x /tmp/libncurses5.deb ${SYSROOT_CROSS}/ \
  && dpkg-deb -x /tmp/libzlib1g.deb ${SYSROOT_CROSS}/ \
- && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb
+ && dpkg-deb -x /tmp/libffi6.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb /tmp/libffi6.deb
 
 # SPIV-LLVM
 ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
