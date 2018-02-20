@@ -21,7 +21,7 @@ RUN wget -O /tmp/master.tar.gz http://github.com/raspberrypi/tools/archive/maste
 ENV SYSROOT_CROSS /opt/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/arm-linux-gnueabihf/
 
 ENV RPI_TARGET armv6-rpi-linux-gnueabihf
-ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/rhaspberrypi-firmware
+ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware
 ENV RPI_FIRMWARE_VERSION 20170811-1
 
 # rpi firmware
