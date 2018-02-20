@@ -47,11 +47,17 @@ RUN wget -O /tmp/libtinfo5.deb http://mirrordirector.raspbian.org/raspbian/pool/
  && wget -O /tmp/libncurses5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses5_5.9+20140913-1+deb8u2_armhf.deb \
  && wget -O /tmp/libzlib1g.deb http://mirrordirector.raspbian.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-2_armhf.deb \
  && wget -O /tmp/libffi6.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi6_3.2.1-8_armhf.deb \
+ && wget -O /tmp/libffi6-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi-dev_3.2.1-8_armhf.deb \
+ && wget -O /tmp/libedit2.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libe/libedit/libedit2_3.1-20170329-1_armhf.deb \
+ && wget -O /tmp/libedit2-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libe/libedit/libedit-dev_2.11-20080614-5_armhf.deb \
  && dpkg-deb -x /tmp/libtinfo5.deb ${SYSROOT_CROSS}/ \
  && dpkg-deb -x /tmp/libncurses5.deb ${SYSROOT_CROSS}/ \
  && dpkg-deb -x /tmp/libzlib1g.deb ${SYSROOT_CROSS}/ \
  && dpkg-deb -x /tmp/libffi6.deb ${SYSROOT_CROSS}/ \
- && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb /tmp/libffi6.deb
+ && dpkg-deb -x /tmp/libffi6-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libedit2.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libedit2-dev.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb /tmp/libffi6.deb /tmp/libffi6-dev.deb /tmp/libedit2.deb /tmp/libedit2-dev.deb
 
 # SPIV-LLVM
 ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
