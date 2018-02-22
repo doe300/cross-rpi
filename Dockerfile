@@ -2,62 +2,14 @@ FROM debian:stretch
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update \
- && apt-get upgrade -y \
+RUN dpkg --add-architecture armhf \
+ && apt-get update \
  && apt-get install -y --no-install-recommends \
       sudo git wget curl cmake bc \
-      gcc g++ automake libtool build-essential pkg-config \
-      make python opencl-c-headers \
+      gcc g++ automake libtool build-essential pkg-config make \
       apt-utils ca-certificates devscripts \
-      clang-3.9 llvm-3.9-dev llvm \
+ && apt-get install -y libllvm3.9:armhf opencl-c-headers:armhf gcc-6-arm-linux-gnueabihf g++-6-arm-linux-gnueabihf \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-
-RUN wget -O /tmp/master.tar.gz http://github.com/raspberrypi/tools/archive/master.tar.gz \
-  && tar xf /tmp/master.tar.gz \
-  && mkdir -p /opt/raspberrypi \
-  && mv tools-master /opt/raspberrypi/tools \
-  && rm /tmp/master.tar.gz
-
-ENV SYSROOT_CROSS /opt/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/arm-linux-gnueabihf/
-
-ENV RPI_TARGET armv6-rpi-linux-gnueabihf
-ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware
-ENV RPI_FIRMWARE_VERSION 20170811-1
-
-# rpi firmware
-RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
-   ${RPI_FIRMWARE_BASE_URL}/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && wget -O /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
-   ${RPI_FIRMWARE_BASE_URL}/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && dpkg-deb -x /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS}/ \
- && rm /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && cp -r /usr/include/CL ${SYSROOT_CROSS}/include \
- && apt-get remove opencl-c-headers -y
-
-# LLVM library and headers for linking (ARM version)
-RUN wget -O /tmp/libllvm-3.9.deb http://archive.raspberrypi.org/debian/pool/main/l/llvm-toolchain-3.9/libllvm3.9_3.9-4_armhf.deb \
- && wget -O /tmp/libllvm-3.9-dev.deb http://archive.raspberrypi.org/debian/pool/main/l/llvm-toolchain-3.9/llvm-3.9-dev_3.9-4_armhf.deb \
- && dpkg-deb -x	/tmp/libllvm-3.9.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x	/tmp/libllvm-3.9-dev.deb ${SYSROOT_CROSS}/ \
- && rm /tmp/libllvm-3.9.deb /tmp/libllvm-3.9-dev.deb
-
-# Additional system libraryries required for linking LLVM
-RUN wget -O /tmp/libtinfo5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libtinfo5_5.9+20140913-1+deb8u2_armhf.deb \
- && wget -O /tmp/libncurses5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses5_5.9+20140913-1+deb8u2_armhf.deb \
- && wget -O /tmp/libzlib1g.deb http://mirrordirector.raspbian.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-2_armhf.deb \
- && wget -O /tmp/libffi6.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi6_3.2.1-8_armhf.deb \
- && wget -O /tmp/libffi6-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi-dev_3.2.1-8_armhf.deb \
- && wget -O /tmp/libedit2.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libe/libedit/libedit2_3.1-20170329-1_armhf.deb \
- && wget -O /tmp/libedit2-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libe/libedit/libedit-dev_2.11-20080614-5_armhf.deb \
- && dpkg-deb -x /tmp/libtinfo5.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libncurses5.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libzlib1g.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libffi6.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libffi6-dev.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libedit2.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x /tmp/libedit2-dev.deb ${SYSROOT_CROSS}/ \
- && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb /tmp/libffi6.deb /tmp/libffi6-dev.deb /tmp/libedit2.deb /tmp/libedit2-dev.deb
 
 # SPIV-LLVM
 ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
@@ -71,5 +23,29 @@ RUN mkdir -p /opt/SPIRV-LLVM/build \
  && cd /opt/SPIRV-LLVM/build \
  && cmake ../ -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=Off -DLLVM_INCLUDE_TESTS=Off \
       -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_TARGETS_TO_BUILD=X86 \
- && make -j14 \
+ && make -j16 \
  && rm -rf `ls /opt/SPIRV-LLVM/build | grep -v bin`
+
+# note: /opt/vc is created in host environment
+ENV SYSROOT_CROSS /usr/arm-linux-gnueabihf
+ENV RPI_TARGET armv6-rpi-linux-gnueabihf
+ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware
+ENV RPI_FIRMWARE_VERSION 20170811-1
+
+# rpi firmware
+RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
+   ${RPI_FIRMWARE_BASE_URL}/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
+ && wget -O /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
+   ${RPI_FIRMWARE_BASE_URL}/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
+ && dpkg-deb -x /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS} \
+ && dpkg-deb -x /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS} \
+ && rm /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends clang-3.9 \
+ && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+
+RUN apt-get -y remove wget curl
+
+RUN cd /usr/bin && ln -s arm-linux-gnueabihf-g++-6 arm-linux-gnueabihf-g++ \
+ && ln -s arm-linux-gnueabihf-gcc-6 arm-linux-gnueabihf-gcc
