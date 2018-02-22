@@ -7,9 +7,7 @@ RUN dpkg --add-architecture armhf \
  && apt-get install -y --no-install-recommends \
       sudo git wget curl cmake bc \
       gcc g++ automake libtool build-essential pkg-config make \
-      apt-utils ca-certificates devscripts \
- && apt-get install -y libllvm3.9:armhf opencl-c-headers:armhf gcc-6-arm-linux-gnueabihf g++-6-arm-linux-gnueabihf \
- && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+      apt-utils ca-certificates devscripts clang-3.9
 
 # SPIV-LLVM
 ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
@@ -26,7 +24,6 @@ RUN mkdir -p /opt/SPIRV-LLVM/build \
  && make -j16 \
  && rm -rf `ls /opt/SPIRV-LLVM/build | grep -v bin`
 
-# note: /opt/vc is created in host environment
 ENV SYSROOT_CROSS /usr/arm-linux-gnueabihf
 ENV RPI_TARGET armv6-rpi-linux-gnueabihf
 ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware
@@ -41,11 +38,11 @@ RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
  && dpkg-deb -x /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS} \
  && rm /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends clang-3.9 \
- && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-
 RUN apt-get -y remove wget curl
 
 RUN cd /usr/bin && ln -s arm-linux-gnueabihf-g++-6 arm-linux-gnueabihf-g++ \
  && ln -s arm-linux-gnueabihf-gcc-6 arm-linux-gnueabihf-gcc
+
+RUN apt-get install -y --no-install-recommends libllvm3.9:armhf llvm-3.9-dev:armhf \
+    opencl-c-headers:armhf gcc-6-arm-linux-gnueabihf g++-6-arm-linux-gnueabihf \
+ && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
