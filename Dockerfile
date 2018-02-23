@@ -33,5 +33,5 @@ RUN cd /usr/bin && ln -s arm-linux-gnueabihf-g++-6 arm-linux-gnueabihf-g++ \
  && ln -s arm-linux-gnueabihf-gcc-6 arm-linux-gnueabihf-gcc
 
 RUN apt-get install -y --no-install-recommends libllvm3.9:armhf llvm-3.9-dev:armhf \
-    opencl-c-headers:armhf gcc-6-arm-linux-gnueabihf g++-6-arm-linux-gnueabihf \
+    opencl-c-headers:armhf gcc-6-arm-linux-gnueabihf g++-6-arm-linux-gnueabihf ocl-icd-opencl-dev:armhf ocl-icd-dev:armhf \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
