@@ -1,28 +1,19 @@
 FROM debian:stretch
 
 ENV DEBIAN_FRONTEND noninteractive
-
 RUN dpkg --add-architecture armhf \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
       sudo git wget curl cmake bc \
-      gcc g++ automake libtool build-essential pkg-config make \
-      apt-utils ca-certificates devscripts clang-3.9
+      automake libtool build-essential pkg-config make \
+      apt-utils ca-certificates devscripts clang-3.9 python unzip
 
-# SPIV-LLVM
-ENV CLANG_GIT_URL http://github.com/KhronosGroup/SPIR
-ENV SPIRV_GIT_URL http://github.com/KhronosGroup/SPIRV-LLVM.git
+ADD get_url.py /tmp/get_url.py
 
-RUN git clone -b khronos/spirv-3.6.1 ${SPIRV_GIT_URL} /opt/SPIRV-LLVM \
- && git clone -b spirv-1.0 ${CLANG_GIT_URL} /opt/SPIRV-LLVM/tools/clang \
- && rm -rf /opt/SPIRV-LLVM/.git /opt/SPIRV-LLVM/tools/clang/.git
-
-RUN mkdir -p /opt/SPIRV-LLVM/build \
- && cd /opt/SPIRV-LLVM/build \
- && cmake ../ -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=Off -DLLVM_INCLUDE_TESTS=Off \
-      -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_TARGETS_TO_BUILD=X86 \
- && make -j16 \
- && rm -rf `ls /opt/SPIRV-LLVM/build | grep -v bin`
+RUN curl "https://circleci.com/api/v1.1/project/github/nomaddo/SPIRV-LLVM-circleci/latest/artifacts?branch=master&filter=successful" --output /tmp/dump \
+ && wget -O /tmp/archive.zip $(python /tmp/get_url.py "archive" "/tmp/dump") \
+ && unzip /tmp/archive.zip -d /opt \
+ && rm /tmp/archive.zip /tmp/dump /tmp/get_url.py
 
 ENV SYSROOT_CROSS /usr/arm-linux-gnueabihf
 ENV RPI_TARGET armv6-rpi-linux-gnueabihf
