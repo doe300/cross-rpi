@@ -1,37 +1,54 @@
-FROM debian:stretch
+FROM idein/cross-rpi:armv6
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN dpkg --add-architecture armhf \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
+ARG RPI_TARGET=armv6-rpi-linux-gnueabihf
+
+RUN sudo apt-get update \
+ && sudo apt-get upgrade -y \
+ && sudo apt-get install -y --no-install-recommends \
       sudo git wget curl cmake bc \
-      automake libtool build-essential pkg-config make \
-      apt-utils ca-certificates devscripts clang-3.9 python unzip
+      gcc g++ automake libtool build-essential pkg-config \
+      make python opencl-c-headers \
+      apt-utils ca-certificates devscripts \
+      clang-3.9 llvm-3.9-dev llvm unzip \
+ && sudo apt-get clean && sudo rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
+ENV SYSROOT_CROSS ${HOME}/cross
+
+# LLVM library and headers for linking (ARM version)
+RUN wget -O /tmp/libllvm-3.9.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-3.9/libllvm3.9_3.9.1-19+rpi1_armhf.deb \
+ && wget -O /tmp/llvm-3.9-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-3.9/llvm-3.9-dev_3.9.1-19+rpi1_armhf.deb \
+ && wget -O /tmp/llvm-3.9.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-3.9/llvm-3.9_3.9.1-19+rpi1_armhf.deb \
+ && dpkg-deb -x	/tmp/libllvm-3.9.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x	/tmp/llvm-3.9-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x	/tmp/llvm-3.9.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libllvm-3.9.deb /tmp/llvm-3.9-dev.deb /tmp/llvm-3.9.deb \
+ && touch ${HOME}/cross/usr/lib/llvm-3.9/bin/lli # create dummy file
+
+RUN sed -i -e "s|/usr/lib|/home/idein/cross/usr/lib|p" /home/idein/cross/usr/lib/llvm-3.9/cmake/LLVMConfig.cmake
+
+# Additional system libraryries required for linking LLVM
+RUN wget -O /tmp/libtinfo5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libtinfo5_6.0+20161126-1+deb9u2_armhf.deb \
+ && wget -O /tmp/libncurses5.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses5_5.9+20140913-1+deb8u2_armhf.deb \
+ && wget -O /tmp/libzlib1g.deb http://mirrordirector.raspbian.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-2_armhf.deb \
+ && wget -O /tmp/libffi6.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi6_3.2.1-8_armhf.deb \
+ && wget -O /tmp/libffi6-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libf/libffi/libffi-dev_3.2.1-8_armhf.deb \
+ && wget -O /tmp/libedit2.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libe/libedit/libedit2_3.1-20170329-1_armhf.deb \
+ && wget -O /tmp/libedit2-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libe/libedit/libedit-dev_2.11-20080614-5_armhf.deb \
+ && wget -O /tmp/libbsd.deb http://mirrordirector.raspbian.org/raspbian/pool/main/libb/libbsd/libbsd0_0.8.3-1_armhf.deb \
+ && dpkg-deb -x /tmp/libtinfo5.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libncurses5.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libzlib1g.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libffi6.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libffi6-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libedit2.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libedit2-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/libbsd.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb /tmp/libffi6.deb /tmp/libffi6-dev.deb /tmp/libedit2.deb /tmp/libedit2-dev.deb /tmp/libbsd.deb
+
+# SPIV-LLVM
 ADD get_url.py /tmp/get_url.py
-
 RUN curl "https://circleci.com/api/v1.1/project/github/nomaddo/SPIRV-LLVM-circleci/latest/artifacts?branch=master&filter=successful" --output /tmp/dump \
  && wget -O /tmp/archive.zip $(python /tmp/get_url.py "archive" "/tmp/dump") \
- && unzip /tmp/archive.zip -d /opt \
- && rm /tmp/archive.zip /tmp/dump /tmp/get_url.py
-
-ENV SYSROOT_CROSS /usr/arm-linux-gnueabihf
-ENV RPI_TARGET armv6-rpi-linux-gnueabihf
-ENV RPI_FIRMWARE_BASE_URL http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware
-ENV RPI_FIRMWARE_VERSION 20170811-1
-
-# rpi firmware
-RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
-   ${RPI_FIRMWARE_BASE_URL}/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && wget -O /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
-   ${RPI_FIRMWARE_BASE_URL}/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && dpkg-deb -x /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS} \
- && dpkg-deb -x /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb ${SYSROOT_CROSS} \
- && rm /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb
-
-RUN cd /usr/bin && ln -s arm-linux-gnueabihf-g++-6 arm-linux-gnueabihf-g++ \
- && ln -s arm-linux-gnueabihf-gcc-6 arm-linux-gnueabihf-gcc
-
-RUN apt-get install -y --no-install-recommends libllvm3.9:armhf llvm-3.9-dev:armhf \
-    opencl-c-headers:armhf gcc-6-arm-linux-gnueabihf g++-6-arm-linux-gnueabihf ocl-icd-opencl-dev:armhf ocl-icd-dev:armhf \
- && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+ && sudo unzip -q /tmp/archive.zip -d /opt \
+ && sudo rm /tmp/archive.zip /tmp/dump /tmp/get_url.py
