@@ -46,6 +46,18 @@ RUN wget -O /tmp/libtinfo5.deb http://mirrordirector.raspbian.org/raspbian/pool/
  && dpkg-deb -x /tmp/libbsd.deb ${SYSROOT_CROSS}/ \
  && rm /tmp/libtinfo5.deb /tmp/libncurses5.deb /tmp/libzlib1g.deb /tmp/libffi6.deb /tmp/libffi6-dev.deb /tmp/libedit2.deb /tmp/libedit2-dev.deb /tmp/libbsd.deb
 
+RUN wget -O /tmp/ocl-icd-opencl-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/o/ocl-icd/ocl-icd-opencl-dev_2.2.11-1_armhf.deb \
+ && wget -O /tmp/ocl-icd-libopencl1.deb http://mirrordirector.raspbian.org/raspbian/pool/main/o/ocl-icd/ocl-icd-libopencl1_2.2.11-1_armhf.deb \
+ && wget -O /tmp/opencl-c-headers.deb http://mirrordirector.raspbian.org/raspbian/pool/main/k/khronos-opencl-headers/opencl-c-headers_2.1-1_all.deb \
+ && wget -O /tmp/ocl-icd-opencl-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/o/ocl-icd/ocl-icd-opencl-dev_2.2.11-1_armhf.deb \
+ && wget -O /tmp/ocl-icd-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/o/ocl-icd/ocl-icd-dev_2.2.11-1_armhf.deb \
+ && dpkg-deb -x /tmp/ocl-icd-opencl-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/ocl-icd-libopencl1.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/opencl-c-headers.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/ocl-icd-opencl-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x /tmp/ocl-icd-dev.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/*.deb
+
 # SPIV-LLVM
 ADD get_url.py /tmp/get_url.py
 RUN curl "https://circleci.com/api/v1.1/project/github/nomaddo/SPIRV-LLVM-circleci/latest/artifacts?branch=master&filter=successful" --output /tmp/dump \
