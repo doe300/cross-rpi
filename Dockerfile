@@ -64,3 +64,8 @@ RUN curl "https://circleci.com/api/v1.1/project/github/nomaddo/SPIRV-LLVM-circle
  && wget -O /tmp/archive.zip $(python /tmp/get_url.py "archive" "/tmp/dump") \
  && sudo unzip -q /tmp/archive.zip -d /opt \
  && sudo rm /tmp/archive.zip /tmp/dump /tmp/get_url.py
+ 
+# Additional packages required to fulfill dependencies
+RUN wget -O /tmp/libncurses5-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses5-dev_5.9+20140913-1+deb8u3_armhf.deb \
+ && dpkg-deb -x /tmp/libncurses5-dev.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libncurses5-dev.deb
