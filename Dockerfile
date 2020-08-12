@@ -6,17 +6,22 @@ ARG RPI_TARGET=armv6-rpi-linux-gnueabihf
 # Enable backport repositories to provide clang/llvm 6 for stretch
 # For some strange reason, sudo does not work here...
 USER root
-RUN echo "deb http://ftp.debian.org/debian stretch-backports main" > /etc/apt/sources.list.d/stretch-backports.list
+RUN echo "deb http://ftp.debian.org/debian stretch-backports main" > /etc/apt/sources.list.d/stretch-backports.list \
+    && echo "deb http://ftp.debian.org/debian stretch-backports-sloppy main" > /etc/apt/sources.list.d/stretch-backports-sloppy.list
 
 USER idein
 RUN sudo apt-get update \
  && sudo apt-get upgrade -y \
  && sudo apt-get install -y --no-install-recommends \
-      sudo git wget curl cmake bc \
+      sudo git wget curl bc \
       gcc g++ automake libtool build-essential pkg-config \
-      make python opencl-c-headers \
-      apt-utils ca-certificates devscripts \
-      clang-6.0 llvm-6.0-dev llvm-6.0 libclang1-6.0 libclang-6.0-dev unzip \
+      make python \
+      apt-utils ca-certificates devscripts unzip \
+ && sudo apt-get install -y --no-install-recommends -t stretch-backports-sloppy \
+      libarchive13 \
+ && sudo apt-get install -y --no-install-recommends -t stretch-backports \
+      cmake opencl-c-headers \
+      clang-6.0 llvm-6.0-dev llvm-6.0 libclang1-6.0 libclang-6.0-dev \
  && sudo apt-get clean && sudo rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 ENV SYSROOT_CROSS ${HOME}/cross
