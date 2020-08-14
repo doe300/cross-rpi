@@ -17,26 +17,26 @@ RUN sudo apt-get update \
       gcc g++ automake libtool build-essential pkg-config \
       make python \
       apt-utils ca-certificates devscripts unzip \
+      clang-7 llvm-7-dev llvm-7 libclang1-7 libclang-7-dev \
  && sudo apt-get install -y --no-install-recommends -t stretch-backports-sloppy \
       libarchive13 \
  && sudo apt-get install -y --no-install-recommends -t stretch-backports \
       cmake opencl-c-headers \
-      clang-6.0 llvm-6.0-dev llvm-6.0 libclang1-6.0 libclang-6.0-dev \
  && sudo apt-get clean && sudo rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 ENV SYSROOT_CROSS ${HOME}/cross
 
 # LLVM library and headers for linking (ARM version)
-RUN wget -O /tmp/libllvm-6.0.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-6.0/libllvm6.0_6.0.1-14.1+rpi1_armhf.deb \
- && wget -O /tmp/llvm-6.0-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-6.0/llvm-6.0-dev_6.0.1-14.1+rpi1_armhf.deb \
- && wget -O /tmp/llvm-6.0.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-6.0/llvm-6.0_6.0.1-14.1+rpi1_armhf.deb \
- && dpkg-deb -x	/tmp/libllvm-6.0.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x	/tmp/llvm-6.0-dev.deb ${SYSROOT_CROSS}/ \
- && dpkg-deb -x	/tmp/llvm-6.0.deb ${SYSROOT_CROSS}/ \
- && rm /tmp/libllvm-6.0.deb /tmp/llvm-6.0-dev.deb /tmp/llvm-6.0.deb \
- && touch ${HOME}/cross/usr/lib/llvm-6.0/bin/lli # create dummy file
+RUN wget -O /tmp/libllvm-7.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-7/libllvm7_7.0.1-8+rpi3_armhf.deb \
+ && wget -O /tmp/llvm-7-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-7/llvm-7-dev_7.0.1-8+rpi3_armhf.deb \
+ && wget -O /tmp/llvm-7.deb http://mirrordirector.raspbian.org/raspbian/pool/main/l/llvm-toolchain-7/llvm-7_7.0.1-8+rpi3_armhf.deb \
+ && dpkg-deb -x	/tmp/libllvm-7.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x	/tmp/llvm-7-dev.deb ${SYSROOT_CROSS}/ \
+ && dpkg-deb -x	/tmp/llvm-7.deb ${SYSROOT_CROSS}/ \
+ && rm /tmp/libllvm-7.deb /tmp/llvm-7-dev.deb /tmp/llvm-7.deb \
+ && touch ${HOME}/cross/usr/lib/llvm-7/bin/lli # create dummy file
 
-RUN sed -i -e "s|/usr/lib|/home/idein/cross/usr/lib|p" /home/idein/cross/usr/lib/llvm-6.0/cmake/LLVMConfig.cmake
+RUN sed -i -e "s|/usr/lib|/home/idein/cross/usr/lib|p" /home/idein/cross/usr/lib/llvm-7/cmake/LLVMConfig.cmake
 
 # Additional system libraryries required for linking LLVM
 RUN wget -O /tmp/libtinfo6.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libtinfo6_6.2-1_armhf.deb \
@@ -71,3 +71,10 @@ RUN wget -O /tmp/ocl-icd-opencl-dev.deb http://mirrordirector.raspbian.org/raspb
 RUN wget -O /tmp/libncurses-dev.deb http://mirrordirector.raspbian.org/raspbian/pool/main/n/ncurses/libncurses-dev_6.2-1_armhf.deb \
  && dpkg-deb -x /tmp/libncurses-dev.deb ${SYSROOT_CROSS}/ \
  && rm /tmp/libncurses-dev.deb
+
+# SPIRV-LLVM-Translator
+RUN sudo git clone -b v7.0.1-1 --depth 1 https://github.com/KhronosGroup/SPIRV-LLVM-Translator.git /opt/SPIRV-LLVM-Translator \
+ && sudo mkdir /opt/SPIRV-LLVM-Translator/build && cd /opt/SPIRV-LLVM-Translator/build \
+ && sudo cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_INCLUDE_TESTS=OFF .. \
+ && sudo make llvm-spirv -j `nproc` \
+ && sudo rm -rf `ls ./build | grep -v tools` && sudo rm -rf .git/
